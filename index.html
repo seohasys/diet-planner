@@ -14,7 +14,10 @@
         <div class="user-info">
             <span class="lv-badge" id="headerLv">Lv.1</span> 
             <span class="nickname" id="headerNickname">플레이어</span>
-            <div class="date-text" id="currentDateDisplay">시작일</div>
+            <div class="date-text-group">
+                <span id="headerStartDate">시작: 2026-08-01</span>
+                <span id="headerTodayDate">오늘: 2026-08-15</span>
+            </div>
         </div>
         <div class="setting-icon" onclick="openSettings()">⚙️ 설정</div>
     </div>
@@ -120,8 +123,8 @@
         <!-- [탭 3] 업적 및 칭호 -->
         <div id="tab-achievements" class="tab-pane" style="display:none;">
             <div class="info-card-box">
-                <h3>🏆 업적 및 칭호</h3>
-                <p style="font-size:0.75em; color:#666; margin-bottom:12px;">조건을 달성하고 다양한 업적을 해제해보세요.</p>
+                <h3>🏆 업적 목록 (10종)</h3>
+                <p style="font-size:0.75em; color:#666; margin-bottom:12px;">목표를 달성하고 모든 업적을 해제해보세요.</p>
                 <ul class="achievement-list" id="achievementList" style="list-style:none; padding:0; margin:0;"></ul>
             </div>
         </div>
