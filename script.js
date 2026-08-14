@@ -1,8 +1,9 @@
-let appData = JSON.parse(localStorage.getItem('diet_planner_data_v2')) || {
+let appData = JSON.parse(localStorage.getItem('diet_planner_data_v4')) || {
     nickname: "플레이어",
     startWeight: 65.0,
     currentWeight: 65.0,
     targetWeight: 50.0,
+    startDate: "2026-08-01",
     strength: 10,
     endurance: 10,
     stress: 20,
@@ -10,17 +11,22 @@ let appData = JSON.parse(localStorage.getItem('diet_planner_data_v2')) || {
 };
 
 let selectedDateKey = "";
+let currentViewYear = 2026;
+let currentViewMonth = 8;
 
 window.onload = function() {
     let today = new Date();
     selectedDateKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     
+    currentViewYear = today.getFullYear();
+    currentViewMonth = today.getMonth() + 1;
+
     updateAllUI();
-    renderCalendar(today.getFullYear(), today.getMonth() + 1);
+    renderCalendar(currentViewYear, currentViewMonth);
 };
 
 function saveData() {
-    localStorage.setItem('diet_planner_data_v2', JSON.stringify(appData));
+    localStorage.setItem('diet_planner_data_v4', JSON.stringify(appData));
 }
 
 function switchTab(tabName, btnElem) {
@@ -29,6 +35,19 @@ function switchTab(tabName, btnElem) {
     document.getElementById('tab-' + tabName).style.display = 'block';
     btnElem.classList.add('active');
     if(tabName === 'home') updateAllUI();
+    if(tabName === 'schedule') renderCalendar(currentViewYear, currentViewMonth);
+}
+
+function changeMonth(direction) {
+    currentViewMonth += direction;
+    if (currentViewMonth > 12) {
+        currentViewMonth = 1;
+        currentViewYear++;
+    } else if (currentViewMonth < 1) {
+        currentViewMonth = 12;
+        currentViewYear--;
+    }
+    renderCalendar(currentViewYear, currentViewMonth);
 }
 
 function renderCalendar(year, month) {
@@ -130,7 +149,7 @@ function addCustomTodo() {
     appData.todos[selectedDateKey].push({ text: text, done: false });
     input.value = '';
     saveData();
-    renderCalendar(2026, 8);
+    renderCalendar(currentViewYear, currentViewMonth);
     updateAllUI();
 }
 
@@ -154,7 +173,7 @@ function toggleTodo(dateKey, idx) {
 function deleteTodo(dateKey, idx) {
     appData.todos[dateKey].splice(idx, 1);
     saveData();
-    renderCalendar(2026, 8);
+    renderCalendar(currentViewYear, currentViewMonth);
     updateSelectedDateView();
     updateAllUI();
 }
@@ -164,6 +183,7 @@ function openSettings() {
     document.getElementById('inputStartWeight').value = appData.startWeight;
     document.getElementById('inputCurrentWeight').value = appData.currentWeight;
     document.getElementById('inputTargetWeight').value = appData.targetWeight;
+    document.getElementById('inputStartDate').value = appData.startDate || "2026-08-01";
     document.getElementById('settingsModal').style.display = 'flex';
 }
 function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
@@ -173,6 +193,8 @@ function saveSettings() {
     appData.startWeight = parseFloat(document.getElementById('inputStartWeight').value) || 65;
     appData.currentWeight = parseFloat(document.getElementById('inputCurrentWeight').value) || 65;
     appData.targetWeight = parseFloat(document.getElementById('inputTargetWeight').value) || 50;
+    appData.startDate = document.getElementById('inputStartDate').value || "2026-08-01";
+    
     saveData();
     closeSettings();
     updateAllUI();
@@ -183,7 +205,7 @@ function updateAllUI() {
     let todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     
     document.getElementById('headerNickname').innerText = appData.nickname;
-    document.getElementById('currentDateDisplay').innerText = `오늘: ${today.getMonth() + 1}월 ${today.getDate()}일`;
+    document.getElementById('currentDateDisplay').innerText = `시작일: ${appData.startDate}`;
     document.getElementById('displayStartWeight').innerText = appData.startWeight;
     document.getElementById('displayWeight').innerText = appData.currentWeight.toFixed(1);
     document.getElementById('displayTargetWeight').innerText = appData.targetWeight;
@@ -209,7 +231,7 @@ function updateAllUI() {
     let todayTodos = appData.todos[todayKey] || [];
     
     if (todayTodos.length === 0) {
-        todayListUl.innerHTML = `<li style="text-align:center; color:#888; font-size:0.8em; border:none; background:none;">오늘 등록된 일정이 없습니다. (스케줄 탭에서 추가)</li>`;
+        todayListUl.innerHTML = `<li style="text-align:center; color:#888; font-size:0.8em; border:none; background:none;">오늘 등록된 일정이 없습니다. (캘린더 탭에서 추가)</li>`;
         document.getElementById('todayTodoCount').innerText = `0개 완료`;
         return;
     }
