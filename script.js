@@ -1,18 +1,45 @@
-let appData = JSON.parse(localStorage.getItem('diet_planner_data_v4')) || {
+let appData = JSON.parse(localStorage.getItem('diet_planner_data_v11')) || {
     nickname: "플레이어",
     startWeight: 65.0,
     currentWeight: 65.0,
     targetWeight: 50.0,
     startDate: "2026-08-01",
+    level: 1,
+    exp: 0,
+    maxExp: 100,
     strength: 10,
     endurance: 10,
-    stress: 20,
-    todos: {} 
+    stress: 10,
+    todos: {},
+    healingQuests: {},
+    templates: [
+        "미온수 마시기",
+        "식단 조절하기",
+        "유산소 운동 30분",
+        "물 2L 마시기",
+        "스트레칭"
+    ],
+    achievements: {
+        first_quest: false,
+        level_5: false,
+        weight_drop_3kg: false,
+        stress_zero: false
+    }
 };
 
 let selectedDateKey = "";
 let currentViewYear = 2026;
 let currentViewMonth = 8;
+
+// 다양한 회복 퀘스트 풀
+const healingQuestPool = [
+    { text: "따뜻한 차 마시며 10분 휴식하기", stressRelief: 15 },
+    { text: "좋아하는 음악 들으며 가볍게 산책하기", stressRelief: 25 },
+    { text: "스마트폰 멀리하고 15분 낮잠 자기", stressRelief: 30 },
+    { text: "반신욕이나 따뜻한 물로 샤워하기", stressRelief: 35 },
+    { text: "좋아하는 영상 보며 뇌 비우기", stressRelief: 20 },
+    { text: "가벼운 스트레칭으로 몸 풀기", stressRelief: 15 }
+];
 
 window.onload = function() {
     let today = new Date();
@@ -21,12 +48,32 @@ window.onload = function() {
     currentViewYear = today.getFullYear();
     currentViewMonth = today.getMonth() + 1;
 
+    generateDailyHealingQuests();
+
+    checkAchievements();
     updateAllUI();
     renderCalendar(currentViewYear, currentViewMonth);
+    renderTemplates();
 };
 
 function saveData() {
-    localStorage.setItem('diet_planner_data_v4', JSON.stringify(appData));
+    localStorage.setItem('diet_planner_data_v11', JSON.stringify(appData));
+}
+
+// 오늘 날짜에 랜덤으로 2~3개의 회복 퀘스트 생성
+function generateDailyHealingQuests() {
+    let today = new Date();
+    let todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+
+    if (!appData.healingQuests[todayKey]) {
+        let shuffled = [...healingQuestPool].sort(() => 0.5 - Math.random());
+        let selected = shuffled.slice(0, 3).map(q => ({
+            text: q.text,
+            done: false,
+            stressRelief: q.stressRelief
+        }));
+        appData.healingQuests[todayKey] = selected;
+    }
 }
 
 function switchTab(tabName, btnElem) {
@@ -35,7 +82,11 @@ function switchTab(tabName, btnElem) {
     document.getElementById('tab-' + tabName).style.display = 'block';
     btnElem.classList.add('active');
     if(tabName === 'home') updateAllUI();
-    if(tabName === 'schedule') renderCalendar(currentViewYear, currentViewMonth);
+    if(tabName === 'schedule') {
+        renderCalendar(currentViewYear, currentViewMonth);
+        renderTemplates();
+    }
+    if(tabName === 'achievements') renderAchievementsUI();
 }
 
 function changeMonth(direction) {
@@ -55,7 +106,8 @@ function renderCalendar(year, month) {
     grid.innerHTML = '';
     document.getElementById('calendarTitle').innerText = `${year}년 ${month}월`;
 
-    const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+    // 월요일 시작 요일 배열
+    const daysOfWeek = ['월', '화', '수', '목', '금', '토', '일'];
     daysOfWeek.forEach(d => {
         let h = document.createElement('div');
         h.className = 'cal-day-header';
@@ -64,9 +116,13 @@ function renderCalendar(year, month) {
     });
 
     let lastDay = new Date(year, month, 0).getDate();
+    
+    // 자바스크립트의 getDay()는 일요일이 0, 월요일이 1 ... 토요일이 6
+    // 월요일을 첫 칸(0)으로 맞추기 위한 계산식 적용
     let firstDayIndex = new Date(year, month - 1, 1).getDay();
+    let startingEmptyCells = (firstDayIndex === 0) ? 6 : firstDayIndex - 1;
 
-    for (let i = 0; i < firstDayIndex; i++) {
+    for (let i = 0; i < startingEmptyCells; i++) {
         let emptyCell = document.createElement('div');
         grid.appendChild(emptyCell);
     }
@@ -107,16 +163,41 @@ function renderCalendar(year, month) {
     updateSelectedDateView();
 }
 
+function renderTemplates() {
+    let container = document.getElementById('templateChips');
+    container.innerHTML = '';
+    appData.templates.forEach(templateText => {
+        let chip = document.createElement('button');
+        chip.className = 'template-chip';
+        chip.innerText = `+ ${templateText}`;
+        chip.onclick = function() {
+            addTodoDirectly(templateText);
+        };
+        container.appendChild(chip);
+    });
+}
+
+function addTodoDirectly(text) {
+    if (!appData.todos[selectedDateKey]) {
+        appData.todos[selectedDateKey] = [];
+    }
+    appData.todos[selectedDateKey].push({ text: text, done: false });
+    saveData();
+    renderCalendar(currentViewYear, currentViewMonth);
+    updateSelectedDateView();
+    updateAllUI();
+}
+
 function updateSelectedDateView() {
     let parts = selectedDateKey.split('-');
-    document.getElementById('selectedDateTitle').innerText = `${parts[1]}월 ${parts[2]}일 일정 관리`;
+    document.getElementById('selectedDateTitle').innerText = `📅 ${parts[1]}월 ${parts[2]}일 루틴 관리`;
     
     let listUl = document.getElementById('selectedDateTodoList');
     listUl.innerHTML = '';
 
     let dayTodos = appData.todos[selectedDateKey] || [];
     if (dayTodos.length === 0) {
-        listUl.innerHTML = `<li style="text-align:center; color:#888; font-size:0.8em; border:none; background:none;">등록된 일정이 없습니다.</li>`;
+        listUl.innerHTML = `<li style="text-align:center; color:#888; font-size:0.8em; border:none; background:none;">등록된 루틴이 없습니다.</li>`;
         return;
     }
 
@@ -126,8 +207,8 @@ function updateSelectedDateView() {
         li.innerHTML = `
             <span style="${todo.done ? 'text-decoration:line-through; color:#aaa;' : ''}">${todo.text}</span>
             <div>
-                <button onclick="toggleTodo('${selectedDateKey}', ${idx})" style="background:${todo.done ? '#ccc' : '#4CAF50'}; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:0.75em;">${todo.done ? '취소' : '완료'}</button>
-                <button onclick="deleteTodo('${selectedDateKey}', ${idx})" style="background:#FF5252; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:0.75em; margin-left:4px;">삭제</button>
+                <button onclick="toggleTodo('${selectedDateKey}', ${idx})" style="background:${todo.done ? '#ddd' : '#333'}; color:${todo.done ? '#666' : '#fff'}; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:0.75em;">${todo.done ? '완료취소' : '완료'}</button>
+                <button onclick="deleteTodo('${selectedDateKey}', ${idx})" style="background:#fee2e2; color:#ef4444; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:0.75em; margin-left:4px;">삭제</button>
             </div>
         `;
         listUl.appendChild(li);
@@ -141,16 +222,8 @@ function addCustomTodo() {
         alert("내용을 입력해주세요!");
         return;
     }
-
-    if (!appData.todos[selectedDateKey]) {
-        appData.todos[selectedDateKey] = [];
-    }
-
-    appData.todos[selectedDateKey].push({ text: text, done: false });
+    addTodoDirectly(text);
     input.value = '';
-    saveData();
-    renderCalendar(currentViewYear, currentViewMonth);
-    updateAllUI();
 }
 
 function toggleTodo(dateKey, idx) {
@@ -158,16 +231,65 @@ function toggleTodo(dateKey, idx) {
     todo.done = !todo.done;
 
     if (todo.done) {
+        gainExp(35);
         appData.strength += 2;
-        appData.stress = Math.max(0, appData.stress - 3);
+        appData.stress = Math.min(100, appData.stress + 5);
+        appData.achievements.first_quest = true;
+
+        if (Math.random() < 0.3) {
+            triggerRandomEvent();
+        }
     } else {
+        appData.exp = Math.max(0, appData.exp - 35);
         appData.strength = Math.max(0, appData.strength - 2);
-        appData.stress = Math.min(100, appData.stress + 3);
+        appData.stress = Math.max(0, appData.stress - 5);
     }
 
+    checkAchievements();
     saveData();
     updateSelectedDateView();
     updateAllUI();
+}
+
+function toggleHealingQuest(dateKey, idx) {
+    let quest = appData.healingQuests[dateKey][idx];
+    quest.done = !quest.done;
+
+    if (quest.done) {
+        appData.stress = Math.max(0, appData.stress - quest.stressRelief);
+        gainExp(10);
+    } else {
+        appData.stress = Math.min(100, appData.stress + quest.stressRelief);
+        appData.exp = Math.max(0, appData.exp - 10);
+    }
+
+    checkAchievements();
+    saveData();
+    updateAllUI();
+}
+
+function triggerRandomEvent() {
+    const events = [
+        { title: "돌발 이벤트: 길거리 붕어빵 유혹!", desc: "참아내어 정신력이 단단해졌습니다!", stressChange: 5, expBonus: 20 },
+        { title: "돌발 이벤트: 친구의 야식 권유", desc: "정중히 거절하고 의지를 다졌습니다!", stressChange: 10, expBonus: 30 },
+        { title: "돌발 이벤트: 깜짝 컨디션 호조", desc: "몸이 가벼워져 추가 보너스를 얻었습니다!", stressChange: -5, expBonus: 40 }
+    ];
+
+    let ev = events[Math.floor(Math.random() * events.length)];
+    appData.stress = Math.min(100, Math.max(0, appData.stress + ev.stressChange));
+    gainExp(ev.expBonus);
+
+    alert(`✨ ${ev.title}\n${ev.desc}\n(경험치 +${ev.expBonus})`);
+}
+
+function gainExp(amount) {
+    appData.exp += amount;
+    while (appData.exp >= appData.maxExp) {
+        appData.exp -= appData.maxExp;
+        appData.level++;
+        appData.maxExp = Math.floor(appData.maxExp * 1.2);
+        alert(`레벨업! Lv.${appData.level}이 되었습니다.`);
+    }
 }
 
 function deleteTodo(dateKey, idx) {
@@ -176,6 +298,38 @@ function deleteTodo(dateKey, idx) {
     renderCalendar(currentViewYear, currentViewMonth);
     updateSelectedDateView();
     updateAllUI();
+}
+
+function checkAchievements() {
+    if (appData.level >= 5) appData.achievements.level_5 = true;
+    if (appData.startWeight - appData.currentWeight >= 3.0) appData.achievements.weight_drop_3kg = true;
+    if (appData.stress === 0) appData.achievements.stress_zero = true;
+}
+
+function renderAchievementsUI() {
+    let listEl = document.getElementById('achievementList');
+    listEl.innerHTML = '';
+
+    const achievementsData = [
+        { id: 'first_quest', icon: '🎯', title: '첫 루틴 완료', desc: '처음으로 루틴을 완료하세요.' },
+        { id: 'level_5', icon: '⭐', title: '레벨 5 달성', desc: '경험치를 쌓아 레벨 5를 달성하세요.' },
+        { id: 'weight_drop_3kg', icon: '📉', title: '3kg 감량 성공', desc: '시작 체중 기준 3kg 이상 감량하세요.' },
+        { id: 'stress_zero', icon: '🧘', title: '스트레스 제로', desc: '스트레스 수치를 0으로 만드세요.' }
+    ];
+
+    achievementsData.forEach(ach => {
+        let isUnlocked = appData.achievements[ach.id];
+        let li = document.createElement('li');
+        li.className = `achievement-item ${isUnlocked ? 'unlocked' : ''}`;
+        li.innerHTML = `
+            <div class="ach-icon">${ach.icon}</div>
+            <div class="ach-info">
+                <h4>${ach.title} ${isUnlocked ? '✓' : ''}</h4>
+                <p>${ach.desc}</p>
+            </div>
+        `;
+        listEl.appendChild(li);
+    });
 }
 
 function openSettings() {
@@ -195,6 +349,7 @@ function saveSettings() {
     appData.targetWeight = parseFloat(document.getElementById('inputTargetWeight').value) || 50;
     appData.startDate = document.getElementById('inputStartDate').value || "2026-08-01";
     
+    checkAchievements();
     saveData();
     closeSettings();
     updateAllUI();
@@ -204,8 +359,17 @@ function updateAllUI() {
     let today = new Date();
     let todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     
+    generateDailyHealingQuests();
+
+    document.getElementById('headerLv').innerText = `Lv.${appData.level}`;
     document.getElementById('headerNickname').innerText = appData.nickname;
-    document.getElementById('currentDateDisplay').innerText = `시작일: ${appData.startDate}`;
+    document.getElementById('currentDateDisplay').innerText = `시작: ${appData.startDate}`;
+    
+    document.getElementById('charLevelText').innerText = `레벨 ${appData.level}`;
+    document.getElementById('charExpText').innerText = `EXP ${appData.exp} / ${appData.maxExp}`;
+    let expPercent = Math.min(100, (appData.exp / appData.maxExp) * 100);
+    document.getElementById('expProgressBar').style.width = expPercent + '%';
+
     document.getElementById('displayStartWeight').innerText = appData.startWeight;
     document.getElementById('displayWeight').innerText = appData.currentWeight.toFixed(1);
     document.getElementById('displayTargetWeight').innerText = appData.targetWeight;
@@ -215,7 +379,7 @@ function updateAllUI() {
     let percent = totalDrop <= 0 ? 0 : Math.min(100, Math.max(0, (currentDrop / totalDrop) * 100));
     
     document.getElementById('weightProgressBar').style.width = percent + '%';
-    document.getElementById('weightProgressText').innerText = `감량률 ${Math.round(percent)}%`;
+    document.getElementById('weightProgressText').innerText = `목표 달성률 ${Math.round(percent)}%`;
 
     document.getElementById('strBar').style.width = Math.min(100, appData.strength) + '%';
     document.getElementById('strText').innerText = `${appData.strength} P`;
@@ -226,12 +390,28 @@ function updateAllUI() {
     stressBar.style.width = appData.stress + '%';
     document.getElementById('stressText').innerText = `${appData.stress} / 100`;
 
+    // 멘탈 케어 퀘스트 렌더링
+    let healingListUl = document.getElementById('healingQuestList');
+    healingListUl.innerHTML = '';
+    let todayHealing = appData.healingQuests[todayKey] || [];
+    
+    todayHealing.forEach((q, idx) => {
+        let li = document.createElement('li');
+        if (q.done) li.className = 'completed';
+        li.innerHTML = `
+            <span style="${q.done ? 'text-decoration:line-through; color:#aaa;' : ''}">${q.text} <small style="color:#047857; font-weight:bold;">(-${q.stressRelief})</small></span>
+            <button onclick="toggleHealingQuest('${todayKey}', ${idx})" style="background:${q.done ? '#ddd' : '#10b981'}; color:${q.done ? '#666' : '#fff'}; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:0.75em;">${q.done ? '완료취소' : '완수'}</button>
+        `;
+        healingListUl.appendChild(li);
+    });
+
+    // 오늘의 루틴 렌더링
     let todayListUl = document.getElementById('todayTodoList');
     todayListUl.innerHTML = '';
     let todayTodos = appData.todos[todayKey] || [];
     
     if (todayTodos.length === 0) {
-        todayListUl.innerHTML = `<li style="text-align:center; color:#888; font-size:0.8em; border:none; background:none;">오늘 등록된 일정이 없습니다. (캘린더 탭에서 추가)</li>`;
+        todayListUl.innerHTML = `<li style="text-align:center; color:#888; font-size:0.8em; border:none; background:none;">오늘 등록된 루틴이 없습니다.</li>`;
         document.getElementById('todayTodoCount').innerText = `0개 완료`;
         return;
     }
@@ -243,7 +423,7 @@ function updateAllUI() {
         if (todo.done) li.className = 'completed';
         li.innerHTML = `
             <span>${todo.text}</span>
-            <button onclick="toggleTodo('${todayKey}', ${idx})" style="background:${todo.done ? '#ccc' : '#4CAF50'}; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:0.75em;">${todo.done ? '완료됨' : '완수'}</button>
+            <button onclick="toggleTodo('${todayKey}', ${idx})" style="background:${todo.done ? '#ddd' : '#333'}; color:${todo.done ? '#666' : '#fff'}; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:0.75em;">${todo.done ? '완료취소' : '완료'}</button>
         `;
         todayListUl.appendChild(li);
     });
