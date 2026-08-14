@@ -1,4 +1,4 @@
-let appData = JSON.parse(localStorage.getItem('diet_planner_data_v11')) || {
+let appData = JSON.parse(localStorage.getItem('diet_planner_data_v12')) || {
     nickname: "플레이어",
     startWeight: 65.0,
     currentWeight: 65.0,
@@ -21,9 +21,15 @@ let appData = JSON.parse(localStorage.getItem('diet_planner_data_v11')) || {
     ],
     achievements: {
         first_quest: false,
+        level_3: false,
         level_5: false,
+        level_10: false,
+        weight_drop_1kg: false,
         weight_drop_3kg: false,
-        stress_zero: false
+        weight_drop_5kg: false,
+        stress_zero: false,
+        healing_complete: false,
+        goal_success: false
     }
 };
 
@@ -31,7 +37,6 @@ let selectedDateKey = "";
 let currentViewYear = 2026;
 let currentViewMonth = 8;
 
-// 다양한 회복 퀘스트 풀
 const healingQuestPool = [
     { text: "따뜻한 차 마시며 10분 휴식하기", stressRelief: 15 },
     { text: "좋아하는 음악 들으며 가볍게 산책하기", stressRelief: 25 },
@@ -57,10 +62,9 @@ window.onload = function() {
 };
 
 function saveData() {
-    localStorage.setItem('diet_planner_data_v11', JSON.stringify(appData));
+    localStorage.setItem('diet_planner_data_v12', JSON.stringify(appData));
 }
 
-// 오늘 날짜에 랜덤으로 2~3개의 회복 퀘스트 생성
 function generateDailyHealingQuests() {
     let today = new Date();
     let todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -106,7 +110,6 @@ function renderCalendar(year, month) {
     grid.innerHTML = '';
     document.getElementById('calendarTitle').innerText = `${year}년 ${month}월`;
 
-    // 월요일 시작 요일 배열
     const daysOfWeek = ['월', '화', '수', '목', '금', '토', '일'];
     daysOfWeek.forEach(d => {
         let h = document.createElement('div');
@@ -116,9 +119,6 @@ function renderCalendar(year, month) {
     });
 
     let lastDay = new Date(year, month, 0).getDate();
-    
-    // 자바스크립트의 getDay()는 일요일이 0, 월요일이 1 ... 토요일이 6
-    // 월요일을 첫 칸(0)으로 맞추기 위한 계산식 적용
     let firstDayIndex = new Date(year, month - 1, 1).getDay();
     let startingEmptyCells = (firstDayIndex === 0) ? 6 : firstDayIndex - 1;
 
@@ -258,6 +258,7 @@ function toggleHealingQuest(dateKey, idx) {
     if (quest.done) {
         appData.stress = Math.max(0, appData.stress - quest.stressRelief);
         gainExp(10);
+        appData.achievements.healing_complete = true;
     } else {
         appData.stress = Math.min(100, appData.stress + quest.stressRelief);
         appData.exp = Math.max(0, appData.exp - 10);
@@ -301,9 +302,17 @@ function deleteTodo(dateKey, idx) {
 }
 
 function checkAchievements() {
+    if (appData.level >= 3) appData.achievements.level_3 = true;
     if (appData.level >= 5) appData.achievements.level_5 = true;
-    if (appData.startWeight - appData.currentWeight >= 3.0) appData.achievements.weight_drop_3kg = true;
+    if (appData.level >= 10) appData.achievements.level_10 = true;
+    
+    let drop = appData.startWeight - appData.currentWeight;
+    if (drop >= 1.0) appData.achievements.weight_drop_1kg = true;
+    if (drop >= 3.0) appData.achievements.weight_drop_3kg = true;
+    if (drop >= 5.0) appData.achievements.weight_drop_5kg = true;
+    
     if (appData.stress === 0) appData.achievements.stress_zero = true;
+    if (appData.currentWeight <= appData.targetWeight) appData.achievements.goal_success = true;
 }
 
 function renderAchievementsUI() {
@@ -311,10 +320,16 @@ function renderAchievementsUI() {
     listEl.innerHTML = '';
 
     const achievementsData = [
-        { id: 'first_quest', icon: '🎯', title: '첫 루틴 완료', desc: '처음으로 루틴을 완료하세요.' },
-        { id: 'level_5', icon: '⭐', title: '레벨 5 달성', desc: '경험치를 쌓아 레벨 5를 달성하세요.' },
-        { id: 'weight_drop_3kg', icon: '📉', title: '3kg 감량 성공', desc: '시작 체중 기준 3kg 이상 감량하세요.' },
-        { id: 'stress_zero', icon: '🧘', title: '스트레스 제로', desc: '스트레스 수치를 0으로 만드세요.' }
+        { id: 'first_quest', icon: '🎯', title: '첫 걸음마', desc: '첫 번째 루틴을 완료하세요.' },
+        { id: 'level_3', icon: '🌱', title: '습관 형성 (Lv.3)', desc: '레벨 3을 달성하세요.' },
+        { id: 'level_5', icon: '⭐', title: '꾸준함의 힘 (Lv.5)', desc: '레벨 5를 달성하세요.' },
+        { id: 'level_10', icon: '🔥', title: '베테랑 실천가 (Lv.10)', desc: '레벨 10을 달성하세요.' },
+        { id: 'weight_drop_1kg', icon: '🍃', title: '가벼워진 시작 (-1kg)', desc: '시작 체중보다 1kg 이상 감량하세요.' },
+        { id: 'weight_drop_3kg', icon: '📉', title: '순항 중 (-3kg)', desc: '시작 체중보다 3kg 이상 감량하세요.' },
+        { id: 'weight_drop_5kg', icon: '⚡', title: '대변화 시작 (-5kg)', desc: '시작 체중보다 5kg 이상 감량하세요.' },
+        { id: 'stress_zero', icon: '🧘', title: '평온한 멘탈', desc: '스트레스 수치를 0으로 만드세요.' },
+        { id: 'healing_complete', icon: '☕', title: '확실한 휴식', desc: '멘탈 케어 퀘스트를 완료하세요.' },
+        { id: 'goal_success', icon: '👑', title: '목표 체중 달성!', desc: '목표 체중에 도달하세요.' }
     ];
 
     achievementsData.forEach(ach => {
@@ -358,12 +373,14 @@ function saveSettings() {
 function updateAllUI() {
     let today = new Date();
     let todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    let todayStringFormatted = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     
     generateDailyHealingQuests();
 
     document.getElementById('headerLv').innerText = `Lv.${appData.level}`;
     document.getElementById('headerNickname').innerText = appData.nickname;
-    document.getElementById('currentDateDisplay').innerText = `시작: ${appData.startDate}`;
+    document.getElementById('headerStartDate').innerText = `시작: ${appData.startDate}`;
+    document.getElementById('headerTodayDate').innerText = `오늘: ${todayStringFormatted}`;
     
     document.getElementById('charLevelText').innerText = `레벨 ${appData.level}`;
     document.getElementById('charExpText').innerText = `EXP ${appData.exp} / ${appData.maxExp}`;
