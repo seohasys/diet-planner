@@ -45,15 +45,25 @@
                     <span>목표: <strong><span id="displayTargetWeight">50</span>kg</strong></span>
                 </div>
                 
-                <!-- 체중 감량 진행도 -->
-                <div class="weight-progress-wrap">
-                    <div class="progress-bar-bg">
-                        <div id="weightProgressBar" class="progress-bar-fill boss" style="width: 0%;"></div>
+                <!-- 체중 감량 여정 그래프 -->
+                <div class="weight-journey-box">
+                    <div class="journey-title">🗺️ 체중 감량 여정 그래프</div>
+                    <div class="journey-bar-container">
+                        <div class="journey-track"></div>
+                        <div id="journeyProgressBar" class="journey-fill" style="width: 0%;"></div>
+                        <div id="journeyMarker" class="journey-marker" style="left: 0%;">
+                            <div class="marker-bubble" id="markerWeightText">65.0kg</div>
+                            <div class="marker-pin">📍</div>
+                        </div>
                     </div>
-                    <span class="progress-text" id="weightProgressText">목표 달성률 0%</span>
+                    <div class="journey-labels">
+                        <span id="labelStart">65kg (시작)</span>
+                        <span id="labelTarget">50kg (목표)</span>
+                    </div>
+                    <div class="journey-status-text" id="journeyStatusText">목표까지 총 15.0kg 남았습니다! 힘내세요! 🔥</div>
                 </div>
 
-                <div class="gauge-row">
+                <div class="gauge-row" style="margin-top: 15px;">
                     <span>근력 스탯</span>
                     <div class="gauge-bar"><div id="strBar" class="gauge-fill green" style="width: 10%;"></div></div>
                     <span class="gauge-lv" id="strText">10 P</span>
