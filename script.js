@@ -1,4 +1,4 @@
-let appData = JSON.parse(localStorage.getItem('diet_planner_data_v14')) || {
+let appData = JSON.parse(localStorage.getItem('diet_planner_data_v15')) || {
     nickname: "플레이어",
     startWeight: 65.0,
     currentWeight: 65.0,
@@ -40,13 +40,23 @@ let selectedDateKey = "";
 let currentViewYear = 2026;
 let currentViewMonth = 8;
 
+// --- 멘탈 케어 퀘스트 15종 풀 (최종 수정) ---
 const healingQuestPool = [
     { text: "따뜻한 차 마시며 10분 휴식하기", stressRelief: 15 },
     { text: "좋아하는 음악 들으며 가볍게 산책하기", stressRelief: 25 },
-    { text: "스마트폰 멀리하고 15분 낮잠 자기", stressRelief: 30 },
     { text: "반신욕이나 따뜻한 물로 샤워하기", stressRelief: 35 },
     { text: "좋아하는 영상 보며 뇌 비우기", stressRelief: 20 },
-    { text: "가벼운 스트레칭으로 몸 풀기", stressRelief: 15 }
+    { text: "가벼운 스트레칭으로 몸 풀기", stressRelief: 15 },
+    { text: "창밖을 보며 5분간 심호흡 하기", stressRelief: 10 },
+    { text: "일기나 감사일기 3줄 적어보기", stressRelief: 20 },
+    { text: "오늘 고생한 나에게 칭찬 한마디 건네기", stressRelief: 20 },
+    { text: "눈을 감고 10분간 명상하기", stressRelief: 25 },
+    { text: "방 안 환기시키고 시원한 바람 쐬기", stressRelief: 10 },
+    { text: "카페인 대신 시원한 탄산수나 물 마시기", stressRelief: 10 },
+    { text: "잠시 가벼운 눈 운동과 마사지 하기", stressRelief: 15 },
+    { text: "낙서장에 아무 생각 없이 끄적여보기", stressRelief: 15 },
+    { text: "굳어있는 어깨와 목 가볍게 주무르기", stressRelief: 20 },
+    { text: "다리 높게 올리고 편안하게 누워있기", stressRelief: 20 }
 ];
 
 window.onload = function() {
@@ -64,7 +74,7 @@ window.onload = function() {
 };
 
 function saveData() {
-    localStorage.setItem('diet_planner_data_v14', JSON.stringify(appData));
+    localStorage.setItem('diet_planner_data_v15', JSON.stringify(appData));
 }
 
 function generateDailyHealingQuests() {
@@ -368,7 +378,6 @@ function saveSettings() {
     appData.targetWeight = parseFloat(document.getElementById('inputTargetWeight').value) || 50;
     appData.startDate = document.getElementById('inputStartDate').value || "2026-08-01";
     
-    // 시작일 체중 로그 자동 동기화
     if (!appData.weightLogs) appData.weightLogs = [];
     let startLog = appData.weightLogs.find(l => l.date === appData.startDate);
     if (startLog) {
@@ -406,17 +415,14 @@ function saveWeightLog() {
 
     if (!appData.weightLogs) appData.weightLogs = [];
     
-    // 이미 해당 날짜 기록이 있으면 덮어쓰기, 없으면 추가
     let existing = appData.weightLogs.find(l => l.date === logDate);
     if (existing) {
         existing.weight = logWeight;
     } else {
         appData.weightLogs.push({ date: logDate, weight: logWeight });
-        // 날짜순 정렬
         appData.weightLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
     }
 
-    // 최신 기록을 현재 체중으로 반영
     appData.currentWeight = logWeight;
 
     checkAchievements();
@@ -425,13 +431,11 @@ function saveWeightLog() {
     updateAllUI();
 }
 
-// --- 꺾은선 그래프(Canvas) 그리기 함수 ---
 function drawWeightChart() {
     let canvas = document.getElementById('weightChart');
     if (!canvas) return;
     let ctx = canvas.getContext('2d');
 
-    // 고해상도 대응
     let dpr = window.devicePixelRatio || 1;
     let rect = canvas.getBoundingClientRect();
     canvas.width = rect.width * dpr;
@@ -450,13 +454,12 @@ function drawWeightChart() {
     let height = rect.height - padding * 2;
 
     let weights = logs.map(l => l.weight);
-    weights.push(appData.targetWeight); // 목표 체중도 범위 계산에 포함
+    weights.push(appData.targetWeight);
 
     let minW = Math.min(...weights) - 1;
     let maxW = Math.max(...weights) + 1;
     if (minW === maxW) { minW -= 1; maxW += 1; }
 
-    // 목표선 그리기 (회색 점선)
     let targetY = padding + height - ((appData.targetWeight - minW) / (maxW - minW)) * height;
     ctx.strokeStyle = '#cbd5e1';
     ctx.setLineDash([3, 3]);
@@ -466,21 +469,18 @@ function drawWeightChart() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // 목표 라벨
     ctx.fillStyle = '#94a3b8';
     ctx.font = '9px sans-serif';
     ctx.fillText(`목표: ${appData.targetWeight}kg`, padding, targetY - 4);
 
     if (logs.length < 1) return;
 
-    // 포인트 좌표 계산
     let points = logs.map((log, idx) => {
         let x = logs.length === 1 ? rect.width / 2 : padding + (idx / (logs.length - 1)) * width;
         let y = padding + height - ((log.weight - minW) / (maxW - minW)) * height;
         return { x, y, weight: log.weight, date: log.date };
     });
 
-    // 꺾은선 그리기
     ctx.strokeStyle = '#4f46e5';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
@@ -490,20 +490,16 @@ function drawWeightChart() {
     });
     ctx.stroke();
 
-    // 데이터 포인트(동그라미) 및 텍스트 그리기
     points.forEach((pt) => {
-        // 점 배경
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
         ctx.fill();
 
-        // 점 테두리
         ctx.strokeStyle = '#4f46e5';
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // 체중 값 텍스트
         ctx.fillStyle = '#1e293b';
         ctx.font = 'bold 9px sans-serif';
         ctx.textAlign = 'center';
@@ -532,7 +528,6 @@ function updateAllUI() {
     document.getElementById('displayWeight').innerText = appData.currentWeight.toFixed(1);
     document.getElementById('displayTargetWeight').innerText = appData.targetWeight;
 
-    // 꺾은선 그래프 렌더링 호출
     drawWeightChart();
 
     let statusTextElem = document.getElementById('journeyStatusText');
@@ -552,7 +547,6 @@ function updateAllUI() {
     stressBar.style.width = appData.stress + '%';
     document.getElementById('stressText').innerText = `${appData.stress} / 100`;
 
-    // 멘탈 케어 퀘스트 렌더링
     let healingListUl = document.getElementById('healingQuestList');
     healingListUl.innerHTML = '';
     let todayHealing = appData.healingQuests[todayKey] || [];
@@ -567,7 +561,6 @@ function updateAllUI() {
         healingListUl.appendChild(li);
     });
 
-    // 오늘의 루틴 렌더링
     let todayListUl = document.getElementById('todayTodoList');
     todayListUl.innerHTML = '';
     let todayTodos = appData.todos[todayKey] || [];
