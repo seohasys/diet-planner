@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커스텀 다이어트 플래너</title>
+    <title>다이어트 플래너</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,9 +12,9 @@
     <!-- 상단 헤더 -->
     <div class="app-header">
         <div class="user-info">
-            <span class="lv-badge" id="headerNickname">마스터</span> 
-            <span class="nickname">플래너</span>
-            <div class="date-text" id="currentDateDisplay">오늘 날짜 표시</div>
+            <span class="lv-badge" id="headerLv">Lv.1</span> 
+            <span class="nickname" id="headerNickname">플레이어</span>
+            <div class="date-text" id="currentDateDisplay">시작일</div>
         </div>
         <div class="setting-icon" onclick="openSettings()">⚙️ 설정</div>
     </div>
@@ -22,21 +22,32 @@
     <!-- 탭 콘텐츠 영역 -->
     <div class="tab-content-container">
         
-        <!-- [탭 1] 홈 / 실시간 스탯 -->
+        <!-- [탭 1] 홈 / 캐릭터 스탯 및 목표 관리 -->
         <div id="tab-home" class="tab-pane active">
-            <div class="status-card">
-                <div class="card-title">📊 체중 및 스탯 요약</div>
-                <div class="weight-row">
-                    <span>시작: <strong id="displayStartWeight">65</strong>kg</span> 
-                    <span>현재: <strong id="displayWeight">65.0</strong>kg</span> 
-                    <span>목표: <strong id="displayTargetWeight">50</strong>kg</span>
+            <div class="status-card rpg-box">
+                <!-- 경험치 게이지 바 -->
+                <div class="exp-wrap" style="margin-top:0;">
+                    <div class="exp-info-text">
+                        <span id="charLevelText">레벨 1</span>
+                        <span id="charExpText">EXP 0 / 100</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="expProgressBar" class="progress-bar-fill exp" style="width: 0%;"></div>
+                    </div>
                 </div>
-                <!-- 체중 진행도 게이지 -->
+
+                <div class="weight-row" style="margin-top:12px;">
+                    <span>시작: <strong><span id="displayStartWeight">65</span>kg</strong></span> 
+                    <span>현재: <strong><span id="displayWeight">65.0</span>kg</strong></span> 
+                    <span>목표: <strong><span id="displayTargetWeight">50</span>kg</strong></span>
+                </div>
+                
+                <!-- 체중 감량 진행도 -->
                 <div class="weight-progress-wrap">
                     <div class="progress-bar-bg">
-                        <div id="weightProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+                        <div id="weightProgressBar" class="progress-bar-fill boss" style="width: 0%;"></div>
                     </div>
-                    <span class="progress-text" id="weightProgressText">감량률 0%</span>
+                    <span class="progress-text" id="weightProgressText">목표 달성률 0%</span>
                 </div>
 
                 <div class="gauge-row">
@@ -51,53 +62,67 @@
                 </div>
                 <div class="gauge-row">
                     <span>스트레스</span>
-                    <div class="gauge-bar"><div id="stressBar" class="gauge-fill red" style="width: 20%;"></div></div>
-                    <span class="gauge-lv" id="stressText">20 / 100</span>
+                    <div class="gauge-bar"><div id="stressBar" class="gauge-fill red" style="width: 10%;"></div></div>
+                    <span class="gauge-lv" id="stressText">10 / 100</span>
                 </div>
             </div>
 
-            <!-- 오늘 할 일 (스케줄 연동) -->
+            <!-- 회복 퀘스트 (스트레스 해소용) -->
+            <div class="quest-card" style="border: 1px dashed #10b981; background: #fdfdfd;">
+                <div class="quest-header">
+                    <span style="color:#047857;">☕ 멘탈 케어 퀘스트 (회복)</span>
+                    <span class="quest-reward" style="color:#047857;">완수 시 스트레스↓</span>
+                </div>
+                <ul class="quest-list" id="healingQuestList">
+                    <li style="text-align:center; color:#888; font-size:0.8em;">회복 퀘스트가 없습니다.</li>
+                </ul>
+            </div>
+
+            <!-- 오늘 할 일 -->
             <div class="quest-card">
                 <div class="quest-header">
-                    <span>📜 오늘의 커스텀 루틴</span>
+                    <span>📋 오늘의 루틴</span>
                     <span class="quest-reward" id="todayTodoCount">0개 완료</span>
                 </div>
                 <ul class="quest-list" id="todayTodoList">
-                    <li style="text-align:center; color:#888; font-size:0.8em;">스케줄 탭에서 일정을 추가해주세요!</li>
+                    <li style="text-align:center; color:#888; font-size:0.8em;">캘린더 탭에서 오늘의 루틴을 추가하세요.</li>
                 </ul>
             </div>
         </div>
 
-        <!-- [탭 2] 자유로운 무한 캘린더 & 스케줄 관리 -->
+        <!-- [탭 2] 캘린더 & 루틴 관리 -->
         <div id="tab-schedule" class="tab-pane" style="display:none;">
             <div class="calendar-container">
                 <div class="calendar-header">
                     <button onclick="changeMonth(-1)" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.1em;">◀</button>
-                    <h3 id="calendarTitle">연도/월 표시</h3>
+                    <h3 id="calendarTitle">연도 / 월</h3>
                     <button onclick="changeMonth(1)" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.1em;">▶</button>
                 </div>
-                <!-- 달력 그리드 -->
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
 
-            <!-- 선택한 날짜 일정 커스텀 입력 박스 -->
             <div class="info-card-box">
-                <h3 id="selectedDateTitle">날짜를 선택하세요</h3>
+                <h3 id="selectedDateTitle" style="font-size: 0.95em; margin-bottom: 10px;">📅 선택한 날짜 루틴</h3>
+                
+                <div style="margin-bottom: 10px;">
+                    <div style="font-size: 0.75em; color: #777; margin-bottom: 4px;">자주 쓰는 루틴 (클릭 시 추가)</div>
+                    <div id="templateChips" style="display: flex; flex-wrap: wrap; gap: 4px;"></div>
+                </div>
+
                 <div class="custom-input-row">
-                    <input type="text" id="newTodoInput" placeholder="예: 07:30 공복 미온수 1잔, 17:00 1일 1식" style="flex:1; padding:6px; font-size:0.8em; border:1px solid #ddd; border-radius:4px;">
-                    <button onclick="addCustomTodo()" style="background:#7C5CFF; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.8em;">추가</button>
+                    <input type="text" id="newTodoInput" placeholder="예: 물 2L 마시기, 홈트레이닝 20분" style="flex:1; padding:6px; font-size:0.8em; border:1px solid #ddd; border-radius:6px;">
+                    <button onclick="addCustomTodo()" style="background:#333; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.8em;">추가</button>
                 </div>
                 <ul class="custom-todo-list" id="selectedDateTodoList" style="margin-top:10px; padding:0; list-style:none;"></ul>
             </div>
         </div>
 
-        <!-- [탭 3] 가이드 탭 -->
-        <div id="tab-diet" class="tab-pane" style="display:none;">
+        <!-- [탭 3] 업적 및 칭호 -->
+        <div id="tab-achievements" class="tab-pane" style="display:none;">
             <div class="info-card-box">
-                <h3>💡 다이어트 플래너 사용법</h3>
-                <p>1. [설정]에서 내 정보와 프로젝트 시작일을 설정하세요.</p>
-                <p>2. [캘린더] 탭에서 자유롭게 월을 넘겨가며 원하는 날짜에 1일 1식 및 운동 루틴을 적어보세요.</p>
-                <p>3. 완료 버튼을 누르면 스탯이 오르고 스트레스가 해소됩니다!</p>
+                <h3>🏆 업적 및 칭호</h3>
+                <p style="font-size:0.75em; color:#666; margin-bottom:12px;">조건을 달성하고 다양한 업적을 해제해보세요.</p>
+                <ul class="achievement-list" id="achievementList" style="list-style:none; padding:0; margin:0;"></ul>
             </div>
         </div>
 
@@ -107,14 +132,14 @@
     <div class="bottom-nav">
         <button class="nav-item active" onclick="switchTab('home', this)">🏠 홈</button>
         <button class="nav-item" onclick="switchTab('schedule', this)">📅 캘린더</button>
-        <button class="nav-item" onclick="switchTab('diet', this)">📖 가이드</button>
+        <button class="nav-item" onclick="switchTab('achievements', this)">🏆 업적</button>
     </div>
 </div>
 
 <!-- 설정 모달 -->
 <div id="settingsModal" class="goal-modal" style="display:none;">
     <div class="modal-content">
-        <h3>⚙️ 사용자 정보 설정</h3>
+        <h3>⚙️ 설정</h3>
         <div style="margin-bottom:8px; text-align:left; font-size:0.85em;">
             닉네임: <input type="text" id="inputNickname" value="플레이어" style="width:100px;">
         </div>
@@ -132,7 +157,7 @@
             시작일: <input type="date" id="inputStartDate" style="width:130px;">
         </div>
         <div>
-            <button onclick="saveSettings()" style="background:#7C5CFF; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer;">저장</button>
+            <button onclick="saveSettings()" style="background:#333; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer;">저장</button>
             <button onclick="closeSettings()" style="background:#ddd; border:none; padding:6px 14px; border-radius:6px; cursor:pointer;">닫기</button>
         </div>
     </div>
