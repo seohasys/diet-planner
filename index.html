@@ -45,21 +45,17 @@
                     <span>목표: <strong><span id="displayTargetWeight">50</span>kg</strong></span>
                 </div>
                 
-                <!-- 체중 감량 여정 그래프 -->
+                <!-- 체중 변화 꺾은선 그래프 영역 -->
                 <div class="weight-journey-box">
-                    <div class="journey-title">🗺️ 체중 감량 여정 그래프</div>
-                    <div class="journey-bar-container">
-                        <div class="journey-track"></div>
-                        <div id="journeyProgressBar" class="journey-fill" style="width: 0%;"></div>
-                        <div id="journeyMarker" class="journey-marker" style="left: 0%;">
-                            <div class="marker-bubble" id="markerWeightText">65.0kg</div>
-                            <div class="marker-pin">📍</div>
-                        </div>
+                    <div class="journey-title-row">
+                        <span class="journey-title">📈 기간별 체중 변화 추이</span>
+                        <button onclick="openWeightLogModal()" class="weight-log-btn">+ 체중 기록</button>
                     </div>
-                    <div class="journey-labels">
-                        <span id="labelStart">65kg (시작)</span>
-                        <span id="labelTarget">50kg (목표)</span>
+                    
+                    <div class="chart-container">
+                        <canvas id="weightChart"></canvas>
                     </div>
+                    
                     <div class="journey-status-text" id="journeyStatusText">목표까지 총 15.0kg 남았습니다! 힘내세요! 🔥</div>
                 </div>
 
@@ -172,6 +168,23 @@
         <div>
             <button onclick="saveSettings()" style="background:#333; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer;">저장</button>
             <button onclick="closeSettings()" style="background:#ddd; border:none; padding:6px 14px; border-radius:6px; cursor:pointer;">닫기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 체중 기록 모달 -->
+<div id="weightLogModal" class="goal-modal" style="display:none;">
+    <div class="modal-content">
+        <h3>⚖️ 체중 기록하기</h3>
+        <div style="margin-bottom:8px; text-align:left; font-size:0.85em;">
+            날짜: <input type="date" id="inputLogDate" style="width:130px;">
+        </div>
+        <div style="margin-bottom:12px; text-align:left; font-size:0.85em;">
+            체중: <input type="number" id="inputLogWeight" step="0.1" style="width:60px;"> kg
+        </div>
+        <div>
+            <button onclick="saveWeightLog()" style="background:#4f46e5; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer;">기록</button>
+            <button onclick="closeWeightLogModal()" style="background:#ddd; border:none; padding:6px 14px; border-radius:6px; cursor:pointer;">닫기</button>
         </div>
     </div>
 </div>
