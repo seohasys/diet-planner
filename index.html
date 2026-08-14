@@ -68,13 +68,15 @@
             </div>
         </div>
 
-        <!-- [탭 2] 1개월 캘린더 & 커스텀 스케줄 관리 -->
+        <!-- [탭 2] 자유로운 무한 캘린더 & 스케줄 관리 -->
         <div id="tab-schedule" class="tab-pane" style="display:none;">
             <div class="calendar-container">
                 <div class="calendar-header">
-                    <h3 id="calendarTitle">2026년 8월</h3>
+                    <button onclick="changeMonth(-1)" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.1em;">◀</button>
+                    <h3 id="calendarTitle">연도/월 표시</h3>
+                    <button onclick="changeMonth(1)" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.1em;">▶</button>
                 </div>
-                <!-- 1개월 전체 달력 그리드 -->
+                <!-- 달력 그리드 -->
                 <div class="calendar-grid" id="calendarGrid"></div>
             </div>
 
@@ -82,7 +84,7 @@
             <div class="info-card-box">
                 <h3 id="selectedDateTitle">날짜를 선택하세요</h3>
                 <div class="custom-input-row">
-                    <input type="text" id="newTodoInput" placeholder="예: 공복 유산소 30분, 닭가슴살 먹기" style="flex:1; padding:6px; font-size:0.8em; border:1px solid #ddd; border-radius:4px;">
+                    <input type="text" id="newTodoInput" placeholder="예: 07:30 공복 미온수 1잔, 17:00 1일 1식" style="flex:1; padding:6px; font-size:0.8em; border:1px solid #ddd; border-radius:4px;">
                     <button onclick="addCustomTodo()" style="background:#7C5CFF; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.8em;">추가</button>
                 </div>
                 <ul class="custom-todo-list" id="selectedDateTodoList" style="margin-top:10px; padding:0; list-style:none;"></ul>
@@ -92,10 +94,10 @@
         <!-- [탭 3] 가이드 탭 -->
         <div id="tab-diet" class="tab-pane" style="display:none;">
             <div class="info-card-box">
-                <h3>💡 다이어트 규칙 가이드</h3>
-                <p>1. 우측 상단 [설정]에서 닉네임과 내 체중/목표 체중을 입력하세요.</p>
-                <p>2. [스케줄] 탭에서 날짜별로 나만의 운동/식단 루틴을 자유롭게 추가하세요.</p>
-                <p>3. 루틴을 완료하면 스탯이 오르고 스트레스가 해소됩니다!</p>
+                <h3>💡 다이어트 플래너 사용법</h3>
+                <p>1. [설정]에서 내 정보와 프로젝트 시작일을 설정하세요.</p>
+                <p>2. [캘린더] 탭에서 자유롭게 월을 넘겨가며 원하는 날짜에 1일 1식 및 운동 루틴을 적어보세요.</p>
+                <p>3. 완료 버튼을 누르면 스탯이 오르고 스트레스가 해소됩니다!</p>
             </div>
         </div>
 
@@ -104,26 +106,30 @@
     <!-- 네비게이션 바 -->
     <div class="bottom-nav">
         <button class="nav-item active" onclick="switchTab('home', this)">🏠 홈</button>
-        <button class="nav-item" onclick="switchTab('schedule', this)">📅 1달 스케줄</button>
+        <button class="nav-item" onclick="switchTab('schedule', this)">📅 캘린더</button>
         <button class="nav-item" onclick="switchTab('diet', this)">📖 가이드</button>
     </div>
 </div>
 
-<!-- 설정 모달 (유저 커스텀 설정) -->
+<!-- 설정 모달 -->
 <div id="settingsModal" class="goal-modal" style="display:none;">
     <div class="modal-content">
         <h3>⚙️ 사용자 정보 설정</h3>
         <div style="margin-bottom:8px; text-align:left; font-size:0.85em;">
-            닉네임: <input type="text" id="inputNickname" value="마스터" style="width:110px;">
+            닉네임: <input type="text" id="inputNickname" value="플레이어" style="width:100px;">
         </div>
         <div style="margin-bottom:8px; text-align:left; font-size:0.85em;">
-            시작 체중: <input type="number" id="inputStartWeight" value="65" step="0.5" style="width:60px;"> kg
+            시작 체중: <input type="number" id="inputStartWeight" value="65" step="0.5" style="width:50px;"> kg
         </div>
         <div style="margin-bottom:8px; text-align:left; font-size:0.85em;">
-            현재 체중: <input type="number" id="inputCurrentWeight" value="65" step="0.5" style="width:60px;"> kg
+            현재 체중: <input type="number" id="inputCurrentWeight" value="65" step="0.5" style="width:50px;"> kg
         </div>
+        <div style="margin-bottom:8px; text-align:left; font-size:0.85em;">
+            목표 체중: <input type="number" id="inputTargetWeight" value="50" step="0.5" style="width:50px;"> kg
+        </div>
+        <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
         <div style="margin-bottom:12px; text-align:left; font-size:0.85em;">
-            목표 체중: <input type="number" id="inputTargetWeight" value="50" step="0.5" style="width:60px;"> kg
+            시작일: <input type="date" id="inputStartDate" style="width:130px;">
         </div>
         <div>
             <button onclick="saveSettings()" style="background:#7C5CFF; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer;">저장</button>
