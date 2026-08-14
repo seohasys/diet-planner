@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>커스텀 다이어트 플래너</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="mobile-app-frame">
+    <!-- 상단 헤더 -->
+    <div class="app-header">
+        <div class="user-info">
+            <span class="lv-badge" id="headerNickname">마스터</span> 
+            <span class="nickname">플래너</span>
+            <div class="date-text" id="currentDateDisplay">오늘 날짜 표시</div>
+        </div>
+        <div class="setting-icon" onclick="openSettings()">⚙️ 설정</div>
+    </div>
+
+    <!-- 탭 콘텐츠 영역 -->
+    <div class="tab-content-container">
+        
+        <!-- [탭 1] 홈 / 실시간 스탯 -->
+        <div id="tab-home" class="tab-pane active">
+            <div class="status-card">
+                <div class="card-title">📊 체중 및 스탯 요약</div>
+                <div class="weight-row">
+                    <span>시작: <strong id="displayStartWeight">65</strong>kg</span> 
+                    <span>현재: <strong id="displayWeight">65.0</strong>kg</span> 
+                    <span>목표: <strong id="displayTargetWeight">50</strong>kg</span>
+                </div>
+                <!-- 체중 진행도 게이지 -->
+                <div class="weight-progress-wrap">
+                    <div class="progress-bar-bg">
+                        <div id="weightProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+                    </div>
+                    <span class="progress-text" id="weightProgressText">감량률 0%</span>
+                </div>
+
+                <div class="gauge-row">
+                    <span>근력 스탯</span>
+                    <div class="gauge-bar"><div id="strBar" class="gauge-fill green" style="width: 10%;"></div></div>
+                    <span class="gauge-lv" id="strText">10 P</span>
+                </div>
+                <div class="gauge-row">
+                    <span>지구력 스탯</span>
+                    <div class="gauge-bar"><div id="endBar" class="gauge-fill green" style="width: 10%;"></div></div>
+                    <span class="gauge-lv" id="endText">10 P</span>
+                </div>
+                <div class="gauge-row">
+                    <span>스트레스</span>
+                    <div class="gauge-bar"><div id="stressBar" class="gauge-fill red" style="width: 20%;"></div></div>
+                    <span class="gauge-lv" id="stressText">20 / 100</span>
+                </div>
+            </div>
+
+            <!-- 오늘 할 일 (스케줄 연동) -->
+            <div class="quest-card">
+                <div class="quest-header">
+                    <span>📜 오늘의 커스텀 루틴</span>
+                    <span class="quest-reward" id="todayTodoCount">0개 완료</span>
+                </div>
+                <ul class="quest-list" id="todayTodoList">
+                    <li style="text-align:center; color:#888; font-size:0.8em;">스케줄 탭에서 일정을 추가해주세요!</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- [탭 2] 1개월 캘린더 & 커스텀 스케줄 관리 -->
+        <div id="tab-schedule" class="tab-pane" style="display:none;">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h3 id="calendarTitle">2026년 8월</h3>
+                </div>
+                <!-- 1개월 전체 달력 그리드 -->
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <!-- 선택한 날짜 일정 커스텀 입력 박스 -->
+            <div class="info-card-box">
+                <h3 id="selectedDateTitle">날짜를 선택하세요</h3>
+                <div class="custom-input-row">
+                    <input type="text" id="newTodoInput" placeholder="예: 공복 유산소 30분, 닭가슴살 먹기" style="flex:1; padding:6px; font-size:0.8em; border:1px solid #ddd; border-radius:4px;">
+                    <button onclick="addCustomTodo()" style="background:#7C5CFF; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.8em;">추가</button>
+                </div>
+                <ul class="custom-todo-list" id="selectedDateTodoList" style="margin-top:10px; padding:0; list-style:none;"></ul>
+            </div>
+        </div>
+
+        <!-- [탭 3] 가이드 탭 -->
+        <div id="tab-diet" class="tab-pane" style="display:none;">
+            <div class="info-card-box">
+                <h3>💡 다이어트 규칙 가이드</h3>
+                <p>1. 우측 상단 [설정]에서 닉네임과 내 체중/목표 체중을 입력하세요.</p>
+                <p>2. [스케줄] 탭에서 날짜별로 나만의 운동/식단 루틴을 자유롭게 추가하세요.</p>
+                <p>3. 루틴을 완료하면 스탯이 오르고 스트레스가 해소됩니다!</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 네비게이션 바 -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('home', this)">🏠 홈</button>
+        <button class="nav-item" onclick="switchTab('schedule', this)">📅 1달 스케줄</button>
+        <button class="nav-item" onclick="switchTab('diet', this)">📖 가이드</button>
+    </div>
+</div>
+
+<!-- 설정 모달 (유저 커스텀 설정) -->
+<div id="settingsModal" class="goal-modal" style="display:none;">
+    <div class="modal-content">
+        <h3>⚙️ 사용자 정보 설정</h3>
+        <div style="margin-bottom:8px; text-align:left; font-size:0.85em;">
+            닉네임: <input type="text" id="inputNickname" value="마스터" style="width:110px;">
+        </div>
+        <div style="margin-bottom:8px; text-align:left; font-size:0.85em;">
+            시작 체중: <input type="number" id="inputStartWeight" value="65" step="0.5" style="width:60px;"> kg
+        </div>
+        <div style="margin-bottom:8px; text-align:left; font-size:0.85em;">
+            현재 체중: <input type="number" id="inputCurrentWeight" value="65" step="0.5" style="width:60px;"> kg
+        </div>
+        <div style="margin-bottom:12px; text-align:left; font-size:0.85em;">
+            목표 체중: <input type="number" id="inputTargetWeight" value="50" step="0.5" style="width:60px;"> kg
+        </div>
+        <div>
+            <button onclick="saveSettings()" style="background:#7C5CFF; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer;">저장</button>
+            <button onclick="closeSettings()" style="background:#ddd; border:none; padding:6px 14px; border-radius:6px; cursor:pointer;">닫기</button>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
