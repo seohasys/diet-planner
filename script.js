@@ -1,4 +1,4 @@
-let appData = JSON.parse(localStorage.getItem('diet_planner_data_v12')) || {
+let appData = JSON.parse(localStorage.getItem('diet_planner_data_v13')) || {
     nickname: "플레이어",
     startWeight: 65.0,
     currentWeight: 65.0,
@@ -62,7 +62,7 @@ window.onload = function() {
 };
 
 function saveData() {
-    localStorage.setItem('diet_planner_data_v12', JSON.stringify(appData));
+    localStorage.setItem('diet_planner_data_v13', JSON.stringify(appData));
 }
 
 function generateDailyHealingQuests() {
@@ -391,12 +391,30 @@ function updateAllUI() {
     document.getElementById('displayWeight').innerText = appData.currentWeight.toFixed(1);
     document.getElementById('displayTargetWeight').innerText = appData.targetWeight;
 
-    let totalDrop = appData.startWeight - appData.targetWeight;
-    let currentDrop = appData.startWeight - appData.currentWeight;
-    let percent = totalDrop <= 0 ? 0 : Math.min(100, Math.max(0, (currentDrop / totalDrop) * 100));
+    // --- 체중 여정 그래프 계산 및 렌더링 로직 ---
+    document.getElementById('labelStart').innerText = `${appData.startWeight}kg (시작)`;
+    document.getElementById('labelTarget').innerText = `${appData.targetWeight}kg (목표)`;
+
+    let totalDiff = appData.startWeight - appData.targetWeight;
+    let currentDiff = appData.startWeight - appData.currentWeight;
     
-    document.getElementById('weightProgressBar').style.width = percent + '%';
-    document.getElementById('weightProgressText').innerText = `목표 달성률 ${Math.round(percent)}%`;
+    let percent = 0;
+    if (totalDiff > 0) {
+        percent = Math.min(100, Math.max(0, (currentDiff / totalDiff) * 100));
+    }
+
+    document.getElementById('journeyProgressBar').style.width = percent + '%';
+    document.getElementById('journeyMarker').style.left = percent + '%';
+    document.getElementById('markerWeightText').innerText = `${appData.currentWeight.toFixed(1)}kg`;
+
+    let statusTextElem = document.getElementById('journeyStatusText');
+    if (appData.currentWeight <= appData.targetWeight) {
+        statusTextElem.innerText = `🎉 축하합니다! 목표 체중을 달성하셨습니다! 👑`;
+    } else {
+        let remain = (appData.currentWeight - appData.targetWeight).toFixed(1);
+        statusTextElem.innerText = `목표까지 총 ${remain}kg 남았습니다! 힘내세요! 🔥`;
+    }
+    // ----------------------------------------
 
     document.getElementById('strBar').style.width = Math.min(100, appData.strength) + '%';
     document.getElementById('strText').innerText = `${appData.strength} P`;
