@@ -1,4 +1,4 @@
-let appData = JSON.parse(localStorage.getItem('diet_planner_data_v13')) || {
+let appData = JSON.parse(localStorage.getItem('diet_planner_data_v14')) || {
     nickname: "플레이어",
     startWeight: 65.0,
     currentWeight: 65.0,
@@ -11,6 +11,9 @@ let appData = JSON.parse(localStorage.getItem('diet_planner_data_v13')) || {
     endurance: 10,
     stress: 10,
     todos: {},
+    weightLogs: [
+        { date: "2026-08-01", weight: 65.0 }
+    ],
     healingQuests: {},
     templates: [
         "미온수 마시기",
@@ -54,7 +57,6 @@ window.onload = function() {
     currentViewMonth = today.getMonth() + 1;
 
     generateDailyHealingQuests();
-
     checkAchievements();
     updateAllUI();
     renderCalendar(currentViewYear, currentViewMonth);
@@ -62,7 +64,7 @@ window.onload = function() {
 };
 
 function saveData() {
-    localStorage.setItem('diet_planner_data_v13', JSON.stringify(appData));
+    localStorage.setItem('diet_planner_data_v14', JSON.stringify(appData));
 }
 
 function generateDailyHealingQuests() {
@@ -85,7 +87,9 @@ function switchTab(tabName, btnElem) {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + tabName).style.display = 'block';
     btnElem.classList.add('active');
-    if(tabName === 'home') updateAllUI();
+    if(tabName === 'home') {
+        updateAllUI();
+    }
     if(tabName === 'schedule') {
         renderCalendar(currentViewYear, currentViewMonth);
         renderTemplates();
@@ -364,10 +368,147 @@ function saveSettings() {
     appData.targetWeight = parseFloat(document.getElementById('inputTargetWeight').value) || 50;
     appData.startDate = document.getElementById('inputStartDate').value || "2026-08-01";
     
+    // 시작일 체중 로그 자동 동기화
+    if (!appData.weightLogs) appData.weightLogs = [];
+    let startLog = appData.weightLogs.find(l => l.date === appData.startDate);
+    if (startLog) {
+        startLog.weight = appData.startWeight;
+    } else {
+        appData.weightLogs.unshift({ date: appData.startDate, weight: appData.startWeight });
+    }
+
     checkAchievements();
     saveData();
     closeSettings();
     updateAllUI();
+}
+
+function openWeightLogModal() {
+    let today = new Date();
+    let todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    document.getElementById('inputLogDate').value = todayStr;
+    document.getElementById('inputLogWeight').value = appData.currentWeight;
+    document.getElementById('weightLogModal').style.display = 'flex';
+}
+
+function closeWeightLogModal() {
+    document.getElementById('weightLogModal').style.display = 'none';
+}
+
+function saveWeightLog() {
+    let logDate = document.getElementById('inputLogDate').value;
+    let logWeight = parseFloat(document.getElementById('inputLogWeight').value);
+
+    if (!logDate || isNaN(logWeight)) {
+        alert("날짜와 올바른 체중을 입력해주세요!");
+        return;
+    }
+
+    if (!appData.weightLogs) appData.weightLogs = [];
+    
+    // 이미 해당 날짜 기록이 있으면 덮어쓰기, 없으면 추가
+    let existing = appData.weightLogs.find(l => l.date === logDate);
+    if (existing) {
+        existing.weight = logWeight;
+    } else {
+        appData.weightLogs.push({ date: logDate, weight: logWeight });
+        // 날짜순 정렬
+        appData.weightLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+
+    // 최신 기록을 현재 체중으로 반영
+    appData.currentWeight = logWeight;
+
+    checkAchievements();
+    saveData();
+    closeWeightLogModal();
+    updateAllUI();
+}
+
+// --- 꺾은선 그래프(Canvas) 그리기 함수 ---
+function drawWeightChart() {
+    let canvas = document.getElementById('weightChart');
+    if (!canvas) return;
+    let ctx = canvas.getContext('2d');
+
+    // 고해상도 대응
+    let dpr = window.devicePixelRatio || 1;
+    let rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    let logs = appData.weightLogs || [];
+    if (logs.length === 0) {
+        logs = [{ date: appData.startDate, weight: appData.startWeight }];
+    }
+
+    let padding = 25;
+    let width = rect.width - padding * 2;
+    let height = rect.height - padding * 2;
+
+    let weights = logs.map(l => l.weight);
+    weights.push(appData.targetWeight); // 목표 체중도 범위 계산에 포함
+
+    let minW = Math.min(...weights) - 1;
+    let maxW = Math.max(...weights) + 1;
+    if (minW === maxW) { minW -= 1; maxW += 1; }
+
+    // 목표선 그리기 (회색 점선)
+    let targetY = padding + height - ((appData.targetWeight - minW) / (maxW - minW)) * height;
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(padding, targetY);
+    ctx.lineTo(rect.width - padding, targetY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 목표 라벨
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '9px sans-serif';
+    ctx.fillText(`목표: ${appData.targetWeight}kg`, padding, targetY - 4);
+
+    if (logs.length < 1) return;
+
+    // 포인트 좌표 계산
+    let points = logs.map((log, idx) => {
+        let x = logs.length === 1 ? rect.width / 2 : padding + (idx / (logs.length - 1)) * width;
+        let y = padding + height - ((log.weight - minW) / (maxW - minW)) * height;
+        return { x, y, weight: log.weight, date: log.date };
+    });
+
+    // 꺾은선 그리기
+    ctx.strokeStyle = '#4f46e5';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    points.forEach((pt, idx) => {
+        if (idx === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+    });
+    ctx.stroke();
+
+    // 데이터 포인트(동그라미) 및 텍스트 그리기
+    points.forEach((pt) => {
+        // 점 배경
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 점 테두리
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 체중 값 텍스트
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${pt.weight}kg`, pt.x, pt.y - 8);
+    });
 }
 
 function updateAllUI() {
@@ -391,21 +532,8 @@ function updateAllUI() {
     document.getElementById('displayWeight').innerText = appData.currentWeight.toFixed(1);
     document.getElementById('displayTargetWeight').innerText = appData.targetWeight;
 
-    // --- 체중 여정 그래프 계산 및 렌더링 로직 ---
-    document.getElementById('labelStart').innerText = `${appData.startWeight}kg (시작)`;
-    document.getElementById('labelTarget').innerText = `${appData.targetWeight}kg (목표)`;
-
-    let totalDiff = appData.startWeight - appData.targetWeight;
-    let currentDiff = appData.startWeight - appData.currentWeight;
-    
-    let percent = 0;
-    if (totalDiff > 0) {
-        percent = Math.min(100, Math.max(0, (currentDiff / totalDiff) * 100));
-    }
-
-    document.getElementById('journeyProgressBar').style.width = percent + '%';
-    document.getElementById('journeyMarker').style.left = percent + '%';
-    document.getElementById('markerWeightText').innerText = `${appData.currentWeight.toFixed(1)}kg`;
+    // 꺾은선 그래프 렌더링 호출
+    drawWeightChart();
 
     let statusTextElem = document.getElementById('journeyStatusText');
     if (appData.currentWeight <= appData.targetWeight) {
@@ -414,7 +542,6 @@ function updateAllUI() {
         let remain = (appData.currentWeight - appData.targetWeight).toFixed(1);
         statusTextElem.innerText = `목표까지 총 ${remain}kg 남았습니다! 힘내세요! 🔥`;
     }
-    // ----------------------------------------
 
     document.getElementById('strBar').style.width = Math.min(100, appData.strength) + '%';
     document.getElementById('strText').innerText = `${appData.strength} P`;
