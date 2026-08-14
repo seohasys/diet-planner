@@ -1,76 +1,323 @@
 body {
-    background-color: #F8F9FA;
-    font-family: 'Malgun Gothic', sans-serif;
     margin: 0;
-    padding: 20px;
+    padding: 0;
+    background-color: #f0f2f5;
+    font-family: 'Apple SD Gothic Neo', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
+
 .mobile-app-frame {
+    width: 100%;
     max-width: 420px;
-    margin: 0 auto;
-    background: #F8F9FA;
-    border-radius: 24px;
-    overflow: hidden;
-    box-shadow: 0 10px 25px rgba(124, 92, 255, 0.15);
-    border: 8px solid #333;
+    height: 100vh;
+    max-height: 850px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     position: relative;
-    padding-bottom: 70px;
-    min-height: 650px;
+    overflow: hidden;
 }
+
 .app-header {
-    background: #FFFFFF; padding: 15px 20px;
-    display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid #eee;
+    padding: 15px 20px;
+    background: #7C5CFF;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
-.lv-badge { background: #7C5CFF; color: #fff; padding: 2px 6px; border-radius: 6px; font-size: 0.8em; font-weight: bold; }
-.nickname { font-weight: bold; font-size: 0.95em; }
-.date-text { font-size: 0.75em; color: #777; margin-top: 2px; }
-.setting-icon { font-size: 0.85em; cursor: pointer; background: #eee; padding: 4px 8px; border-radius: 6px; font-weight: bold; }
 
-.status-card, .quest-card, .info-card-box, .calendar-container {
-    background: #FFFFFF; margin: 12px; padding: 14px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
-.card-title { font-weight: bold; font-size: 0.9em; margin-bottom: 8px; color: #333; }
-.weight-row { font-size: 0.85em; margin-bottom: 8px; display: flex; justify-content: space-between; background: #F8F9FA; padding: 6px 10px; border-radius: 8px; }
 
-.weight-progress-wrap { margin-bottom: 10px; }
-.progress-bar-bg { width: 100%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
-.progress-bar-fill { height: 100%; background: #7C5CFF; border-radius: 4px; transition: width 0.3s; }
-.progress-text { font-size: 0.75em; color: #666; float: right; margin-top: 3px; }
+.lv-badge {
+    background: #ffeb3b;
+    color: #333;
+    font-size: 0.75em;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
 
-.gauge-row { display: flex; align-items: center; font-size: 0.8em; margin-bottom: 6px; justify-content: space-between; clear: both; }
-.gauge-bar { flex: 1; height: 6px; background: #eee; border-radius: 3px; margin: 0 8px; overflow: hidden; }
-.gauge-fill { height: 100%; border-radius: 3px; }
+.nickname {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.date-text {
+    font-size: 0.75em;
+    opacity: 0.9;
+    margin-left: 5px;
+}
+
+.setting-icon {
+    font-size: 0.85em;
+    cursor: pointer;
+    background: rgba(255,255,255,0.2);
+    padding: 5px 10px;
+    border-radius: 15px;
+}
+
+.tab-content-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    background: #f8f9fa;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.status-card, .quest-card, .info-card-box {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.card-title {
+    font-weight: bold;
+    font-size: 0.95em;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.weight-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+.weight-progress-wrap {
+    margin-bottom: 15px;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: #7C5CFF;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.progress-text {
+    font-size: 0.75em;
+    color: #888;
+    float: right;
+}
+
+.gauge-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.85em;
+}
+
+.gauge-row span:first-child {
+    width: 70px;
+    color: #666;
+}
+
+.gauge-bar {
+    flex: 1;
+    height: 6px;
+    background: #eee;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.gauge-fill {
+    height: 100%;
+}
+
 .gauge-fill.green { background: #4CAF50; }
 .gauge-fill.red { background: #FF5252; }
-.gauge-lv { width: 65px; text-align: right; color: #666; font-size: 0.75em; }
 
-.quest-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.85em; margin-bottom: 8px; }
-.quest-reward { color: #7C5CFF; font-size: 0.75em; }
-.quest-list { list-style: none; padding: 0; margin: 0; }
-.quest-list li, .custom-todo-list li { font-size: 0.82em; margin-bottom: 6px; color: #444; display: flex; align-items: center; justify-content: space-between; background: #fafafa; padding: 6px 8px; border-radius: 6px; border: 1px solid #eee; }
-.quest-list li.completed span { text-decoration: line-through; color: #aaa; }
+.gauge-lv {
+    width: 50px;
+    text-align: right;
+    font-size: 0.8em;
+    color: #666;
+}
 
-.calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9em; font-weight: bold; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 0.75em; max-height: 260px; overflow-y: auto; }
-.cal-day-header { font-weight: bold; color: #888; padding-bottom: 4px; }
-.cal-cell { background: #f9f9f9; padding: 8px 2px; border-radius: 4px; border: 1px solid #eee; cursor: pointer; min-height: 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.cal-cell:hover { background: #ede7f6; }
-.cal-cell.selected { border-color: #7C5CFF; background: #ede7f6; font-weight: bold; }
-.cal-cell.today { font-weight: bold; color: #7C5CFF; }
-.has-todo-dot { width: 4px; height: 4px; background: #7C5CFF; border-radius: 50%; margin-top: 2px; }
+.quest-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
 
-.custom-input-row { display: flex; gap: 6px; margin-top: 6px; }
+.quest-reward {
+    font-size: 0.8em;
+    color: #7C5CFF;
+}
 
+.quest-list, .custom-todo-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.quest-list li, .custom-todo-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background: #fdfdfd;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 0.85em;
+}
+
+.quest-list li.completed span, .custom-todo-list li.completed span {
+    text-decoration: line-through;
+    color: #aaa;
+}
+
+/* 캘린더 디자인 */
+.calendar-container {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.calendar-header h3 {
+    margin: 0;
+    font-size: 1em;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+}
+
+.cal-day-header {
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #888;
+    padding-bottom: 5px;
+}
+
+.cal-cell {
+    aspect-ratio: 1;
+    background: #f9f9f9;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
+    cursor: pointer;
+    position: relative;
+}
+
+.cal-cell.today {
+    border: 1.5px solid #7C5CFF;
+    font-weight: bold;
+}
+
+.cal-cell.selected {
+    background: #7C5CFF !important;
+    color: white;
+}
+
+.has-todo-dot {
+    width: 4px;
+    height: 4px;
+    background: #FF5252;
+    border-radius: 50%;
+    margin-top: 2px;
+}
+
+.custom-input-row {
+    display: flex;
+    gap: 5px;
+}
+
+/* 네비게이션바 */
 .bottom-nav {
-    position: absolute; bottom: 0; left: 0; width: 100%; background: #FFFFFF;
-    display: flex; border-top: 1px solid #eee; height: 60px; z-index: 10;
+    height: 60px;
+    background: white;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
 }
-.nav-item { flex: 1; background: none; border: none; font-size: 0.75em; font-weight: bold; color: #888; cursor: pointer; }
-.nav-item.active { color: #7C5CFF; }
 
-.goal-modal {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
-    display: flex; justify-content: center; align-items: center; z-index: 1000;
+.nav-item {
+    background: none;
+    border: none;
+    font-size: 0.8em;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
 }
-.modal-content { background: #fff; padding: 20px; border-radius: 16px; text-align: center; max-width: 280px; width: 80%; }
-.modal-content h3 { margin-top: 0; font-size: 1.1em; color: #333; }
+
+.nav-item.active {
+    color: #7C5CFF;
+    font-weight: bold;
+}
+
+/* 모달창 */
+.goal-modal {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    width: 280px;
+    text-align: center;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    font-size: 1.1em;
+}
