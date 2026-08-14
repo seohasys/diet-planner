@@ -115,7 +115,7 @@ body {
     color: #555;
 }
 
-/* --- 체중 여정 그래프 스타일 --- */
+/* --- 꺾은선 그래프 영역 스타일 --- */
 .weight-journey-box {
     background: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -124,68 +124,43 @@ body {
     margin-top: 10px;
 }
 
+.journey-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
 .journey-title {
     font-size: 0.8em;
     font-weight: bold;
     color: #444;
-    margin-bottom: 10px;
 }
 
-.journey-bar-container {
-    position: relative;
-    height: 10px;
-    margin: 25px 10px 10px 10px;
-}
-
-.journey-track {
-    position: absolute;
-    width: 100%;
-    height: 8px;
-    background: #e2e8f0;
-    border-radius: 4px;
-}
-
-.journey-fill {
-    position: absolute;
-    height: 8px;
-    background: #4f46e5;
-    border-radius: 4px;
-    transition: width 0.3s;
-}
-
-.journey-marker {
-    position: absolute;
-    top: -22px;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: left 0.3s;
-}
-
-.marker-bubble {
+.weight-log-btn {
     background: #4f46e5;
     color: white;
-    font-size: 0.65em;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 4px;
-    white-space: nowrap;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
-
-.marker-pin {
-    font-size: 0.75em;
-    line-height: 1;
-    margin-top: -1px;
-}
-
-.journey-labels {
-    display: flex;
-    justify-content: space-between;
+    border: none;
     font-size: 0.7em;
-    color: #777;
-    margin-top: 4px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.chart-container {
+    width: 100%;
+    height: 140px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-container canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .journey-status-text {
@@ -198,7 +173,7 @@ body {
     padding: 5px;
     border-radius: 6px;
 }
-/* -------------------------- */
+/* -------------------------------- */
 
 .progress-bar-bg {
     width: 100%;
