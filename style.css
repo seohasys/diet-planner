@@ -23,7 +23,7 @@ body {
 }
 
 .app-header {
-    padding: 15px 20px;
+    padding: 12px 20px;
     background: #333333;
     color: white;
     display: flex;
@@ -47,14 +47,17 @@ body {
 }
 
 .nickname {
-    font-size: 1em;
+    font-size: 0.95em;
     font-weight: bold;
 }
 
-.date-text {
-    font-size: 0.7em;
-    opacity: 0.8;
-    margin-left: 4px;
+.date-text-group {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.65em;
+    opacity: 0.85;
+    margin-left: 6px;
+    line-height: 1.2;
 }
 
 .setting-icon {
@@ -86,14 +89,6 @@ body {
     padding: 15px;
     margin-bottom: 15px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-}
-
-.card-title {
-    font-weight: bold;
-    font-size: 0.95em;
-    margin-bottom: 10px;
-    color: #333;
-    text-align: center;
 }
 
 .exp-wrap {
