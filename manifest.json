@@ -1,0 +1,9 @@
+{
+  "name": "나만의 다이어트 & 멘탈 플래너",
+  "short_name": "다이어트플래너",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": []
+}
